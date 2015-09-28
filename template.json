@@ -1,0 +1,52 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "iso/10240.16384.150709-1700.TH1_CLIENTENTERPRISEEVAL_OEMRET_X64FRE_EN-US.ISO",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "6cd2f47f2c32faa7be85f1dc81af3220",
+      "headless": true,
+      "boot_wait": "2m",
+      "communicator": "winrm",
+      "winrm_username": "{{user `vagrant_user`}}",
+      "winrm_password": "{{user `vagrant_password`}}",
+      "winrm_timeout": "4h",
+      "guest_additions_mode": "attach",
+      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
+      "guest_os_type": "Windows10_64",
+      "disk_size": 64000,
+      "floppy_files": [
+        "./Autounattend.xml",
+        "./scripts/fix-network.ps1",
+        "./scripts/enable-winrm.bat"
+      ],
+      "vm_name": "{{user `vmname`}}",
+      "vboxmanage": [
+        [ "modifyvm", "{{.Name}}", "--memory", "2048" ],
+        [ "modifyvm", "{{.Name}}", "--cpus", "2" ],
+        [ "modifyvm", "{{.Name}}", "--vram", "32" ]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "powershell",
+      "script": "./scripts/vm-guest-tools.ps1",
+      "elevated_user": "{{user `vagrant_user`}}",
+      "elevated_password": "{{user `vagrant_password`}}"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": false,
+      "output": "{{user `vmname`}}.{{.Provider}}.box",
+      "vagrantfile_template": "vagrantfile.template"
+    }
+  ],
+  "variables": {
+      "vmname": "windows10",
+      "vagrant_user": "vagrant",
+      "vagrant_password": "vagrant"
+  }
+}

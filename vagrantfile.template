@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.require_version ">= 1.7.4"
+
+Vagrant.configure("2") do |config|
+
+    # this plugin doesn't work on windows guests
+    if Vagrant.has_plugin?("vagrant-vbguest")
+        config.vbguest.auto_update = false
+    end
+
+    config.vm.define "vagrant-windows10"
+    config.vm.box = "windows10"
+    config.vm.box_version = "1.0.0"
+
+    config.vm.guest = :windows
+    config.vm.communicator = :winrm
+    config.winrm.username = "vagrant"
+    config.winrm.password = "vagrant"
+
+    config.windows.halt_timeout = 15
+
+    config.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct:true
+    config.vm.network :forwarded_port, guest: 3389, host: 3389, id: "rdp", auto_correct: true
+
+    config.vm.provider :virtualbox do |v, override|
+        v.gui = false
+        v.customize ["modifyvm", :id, "--memory", 2048]
+        v.customize ["modifyvm", :id, "--cpus", 2]
+        v.customize ["modifyvm", :id, "--vram", 32]
+        v.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
+    end
+end

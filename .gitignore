@@ -1,0 +1,14 @@
+/iso/*
+!/iso/download.ps1
+
+/output-*/
+
+# Cache objects
+packer_cache/
+
+# For built boxes
+*.box
+
+# Vagrant
+/.vagrant/
+[B]erksfile.lock
