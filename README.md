@@ -35,3 +35,10 @@ You will need to install
 vagrant box add windows10.virtualbox.box --name windows10
 vagrant up
 ```
+
+## Windows Assessment & Deployment Kit (ADK)
+
+The Windows ADK contains many useful tools, among which you'll find the System Image Manager (SIM).
+You can used this to customize the `Autounattended.xml` file. Although you can edit the file manually,
+the SIM will give you better insight into the features and settings available to the Windows version
+you are working with. Learn more at https://msdn.microsoft.com/en-us/windows/hardware/dn913721(v=vs.8.5).aspx.
