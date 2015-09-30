@@ -5,13 +5,6 @@
 # For more info, see:
 # http://blogs.msdn.com/b/powershell/archive/2009/04/03/setting-network-location-to-private.aspx
 
-# Network location feature was only introduced in Windows Vista - no need to bother with this
-# if the operating system is older than Vista
-if([environment]::OSVersion.version.Major -lt 6) { return }
-
-# You cannot change the network location if you are joined to a domain, so abort
-if(1,3,4,5 -contains (Get-WmiObject win32_computersystem).DomainRole) { return }
-
 # Get network connections
 $networkListManager = [Activator]::CreateInstance([Type]::GetTypeFromCLSID([Guid]"{DCB00C01-570F-4A9B-8D69-199FDBA5723B}"))
 $connections = $networkListManager.GetNetworkConnections()
@@ -21,3 +14,24 @@ $connections |foreach {
     $_.GetNetwork().SetCategory(1)
     Write-Host $_.GetNetwork().GetName()"changed to category"$_.GetNetwork().GetCategory()
 }
+
+Write-Host "Enabling WinRM"
+winrm quickconfig -q
+winrm quickconfig -transport:http
+winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="800"}'
+winrm set winrm/config/winrs '@{MaxProcessesPerShell="0"}'
+winrm set winrm/config/winrs '@{MaxShellsPerUser="0"}'
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
+winrm set winrm/config/client/auth '@{Basic="true"}'
+winrm set winrm/config/listener?Address=*+Transport=HTTP '@{Port="5985"} '
+
+Write-Host "Opening firewall for WinRM"
+netsh advfirewall firewall set rule group="remote administration" new enable=yes
+netsh firewall add portopening TCP 5985 "Port 5985"
+
+Write-Host "Setting WinRM to auto start and restarting"
+net stop winrm
+sc.exe config winrm start= auto
+net start winrm
